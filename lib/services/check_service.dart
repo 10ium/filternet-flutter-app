@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-// The import path is now corrected to the final, verified package
-import 'package:doh/doh.dart';
+import 'dart:io'; // Using the core dart:io library for DNS lookup
 import 'package:http/http.dart' as http;
 import '../models/check_result.dart';
 
@@ -17,17 +15,15 @@ class CheckService {
   static const String _sniProbeHost = 'google.com';
   static const int _timeoutSeconds = 15;
 
-  /// Checks the DNS resolution of a domain.
+  /// Checks the DNS resolution of a domain using the system's DNS resolver.
   /// Returns a SingleCheckResult with the status.
   Future<SingleCheckResult> checkDns(String domain) async {
     final result = SingleCheckResult(title: 'DNS');
     try {
-      // Use the static lookup method from the correct 'doh' package
-      final response = await Doh.lookup(
-        domain,
-        type: DohRecordType.A,
-        provider: DohProvider.google,
-      ).timeout(Duration(seconds: _timeoutSeconds));
+      // Use the built-in InternetAddress.lookup, which uses the OS's DNS resolver.
+      // This is the correct way to check for local DNS hijacking.
+      final response = await InternetAddress.lookup(domain)
+          .timeout(Duration(seconds: _timeoutSeconds));
       
       if (response.isEmpty) {
         result.status = CheckStatus.error;
@@ -35,8 +31,8 @@ class CheckService {
         return result;
       }
 
-      // The correct property to access the IP is '.data'
-      final ip = response.first.data;
+      // Get the IP address string from the first result
+      final ip = response.first.address;
       if (_blockedIps.contains(ip)) {
         result.status = CheckStatus.blocked;
         result.details = 'IP مسدودسازی: $ip';
@@ -47,9 +43,13 @@ class CheckService {
     } on TimeoutException {
       result.status = CheckStatus.error;
       result.details = 'بررسی DNS زمان‌بر شد (Timeout)';
-    } catch (e) {
+    } on SocketException {
+      // This exception is thrown when the host is not found.
       result.status = CheckStatus.error;
       result.details = 'خطای DNS: آدرس یافت نشد';
+    } catch (e) {
+      result.status = CheckStatus.error;
+      result.details = 'یک خطای نامشخص رخ داد';
     }
     return result;
   }
