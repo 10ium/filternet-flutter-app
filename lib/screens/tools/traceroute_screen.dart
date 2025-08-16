@@ -1,6 +1,6 @@
 import 'package.flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_traceroute/flutter_traceroute.dart';
+import 'package.flutter/services.dart';
+import 'package:simple_tracert/simple_tracert.dart'; // Replaced the old import
 
 class TracerouteScreen extends StatefulWidget {
   const TracerouteScreen({super.key});
@@ -11,7 +11,6 @@ class TracerouteScreen extends StatefulWidget {
 
 class _TracerouteScreenState extends State<TracerouteScreen> {
   final _textController = TextEditingController();
-  final _scrollController = ScrollController();
   
   bool _isTracing = false;
   final List<String> _traceResults = [];
@@ -19,7 +18,6 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
   @override
   void dispose() {
     _textController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -34,29 +32,40 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
       _traceResults.add('🚀 شروع ردیابی مسیر به سمت $host ...');
     });
 
-    var traceroute = Traceroute();
-    traceroute.trace(host).listen((line) {
-      // Callback for each line of traceroute output
+    final tracert = SimpleTracert();
+
+    try {
+      final result = await tracert.execute(host, timeout: 5);
+
+      final formattedResults = <String>[];
+      if (result.destIp != null) {
+        formattedResults.add('IP مقصد: ${result.destIp}');
+      }
+      formattedResults.add('-----------------------------------');
+
+      for (final hop in result.hops) {
+        final rtt = hop.rtt1.isNotEmpty ? '${hop.rtt1} ms' : '*';
+        final ip = hop.ip.isNotEmpty ? hop.ip : 'Request timed out.';
+        formattedResults.add('${hop.hop.toString().padLeft(2)}.   $rtt   $ip');
+      }
+
       setState(() {
-        _traceResults.add(line);
-        // Auto-scroll to the bottom
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
-        });
-      });
-    }).onDone(() {
-      // When traceroute is finished
-      setState(() {
+        _traceResults.clear(); // Clear the "starting..." message
+        _traceResults.addAll(formattedResults);
+        _traceResults.add('-----------------------------------');
         _traceResults.add('🏁 ردیابی کامل شد.');
+      });
+
+    } catch (e) {
+      setState(() {
+        _traceResults.add('❌ خطایی رخ داد:');
+        _traceResults.add(e.toString());
+      });
+    } finally {
+      setState(() {
         _isTracing = false;
       });
-    });
+    }
   }
   
   void _copyResultsToClipboard() {
@@ -67,7 +76,6 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
       );
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +93,6 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
       ),
       body: Column(
         children: [
-          // --- INPUT SECTION ---
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -114,10 +121,7 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
               ],
             ),
           ),
-
           const Divider(height: 1),
-
-          // --- RESULTS SECTION ---
           Expanded(
             child: Container(
               color: Colors.black.withOpacity(0.2),
@@ -125,19 +129,8 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
               child: _traceResults.isEmpty
                   ? const Center(child: Text('برای شروع، یک آدرس وارد کرده و ردیابی را آغاز کنید.'))
                   : ListView.builder(
-                      controller: _scrollController,
                       itemCount: _traceResults.length,
                       itemBuilder: (context, index) {
                         return Text(
                           _traceResults[index],
-                          style: const TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.white70),
-                        );
-                      },
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+                          style: const TextStyle(fontFamily: 'monospace', fontSiz
