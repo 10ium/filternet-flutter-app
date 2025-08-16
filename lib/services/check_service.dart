@@ -81,11 +81,11 @@ class CheckService {
   Future<SingleCheckResult> checkSni(String domain) async {
     final result = SingleCheckResult(title: 'SNI');
     try {
-      // CORRECTED the parameter name from 'hostName' to 'serverName'
+      // CORRECTED the parameter name back to 'hostName'
       final socket = await SecureSocket.connect(
         _sniProbeHost,
         443,
-        serverName: domain, 
+        hostName: domain, 
         timeout: Duration(seconds: _timeoutSeconds),
       );
       result.status = CheckStatus.open;
