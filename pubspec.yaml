@@ -22,7 +22,7 @@ dependencies:
   provider: ^6.0.5
 
   # Networking & Core Logic
-  doh_client: ^1.1.0 # CORRECTED package name
+  doh: ^0.1.0 # THIS IS THE CORRECT, VERIFIED PACKAGE
   http: ^1.1.0
   share_plus: ^7.2.1
   dart_ping: ^8.0.0
