@@ -14,8 +14,6 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      # CACHING: Cache Gradle dependencies to dramatically speed up subsequent builds
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -25,7 +23,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/*.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -47,9 +44,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # STABILITY: Explicitly set up MSVC build tools environment
+      # CORRECTED ACTION: Using a valid and reliable action to set up the MSVC environment.
       - name: Set up MSVC environment
-        uses: microsoft/setup-msvc@v2
+        uses: ilammy/msvc-dev-cmd@v1
 
       - uses: subosito/flutter-action@v2
         with:
