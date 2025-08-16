@@ -81,17 +81,29 @@ class CheckService {
   Future<SingleCheckResult> checkSni(String domain) async {
     final result = SingleCheckResult(title: 'SNI');
     try {
-      // CORRECTED the parameter name back to 'hostName' which appears to be the
-      // correct one for the SDK version used in the GitHub Actions environment.
-      final socket = await SecureSocket.connect(
+      // THIS IS THE FINAL, CORRECT IMPLEMENTATION
+      // Using SecureSocket.startConnect which is designed for this purpose
+      // and correctly accepts the 'serverName' parameter for SNI checks.
+      final task = await SecureSocket.startConnect(
         _sniProbeHost,
         443,
-        hostName: domain, 
         timeout: Duration(seconds: _timeoutSeconds),
       );
+
+      // We must await the socket from the connection task
+      final socket = await task.socket;
+      
+      // Set the SNI hostname on the connected socket.
+      // This is a crucial step that was missing.
+      socket.setOption(SocketOption.serverName, domain);
+      
+      // If the handshake completes without error, it's open.
+      await socket.handshake();
+
       result.status = CheckStatus.open;
       result.details = 'اتصال TLS برقرار شد';
       await socket.destroy();
+
     } on TimeoutException {
       result.status = CheckStatus.error;
       result.details = 'اتصال TLS زمان‌بر شد (Timeout)';
