@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package as:path_provider/path_provider.dart';
+// CORRECTED the malformed import statement below
+import 'package:path_provider/path_provider.dart';
 import '../models/check_result.dart';
 
 class HistoryService {
@@ -13,16 +14,13 @@ class HistoryService {
   Box<DomainCheckResult>? _historyBox;
 
   Future<void> init() async {
-    // Ensure Flutter engine is initialized
-    // WidgetsFlutterBinding.ensureInitialized(); // This should be in main.dart
-
     // Initialize Hive
     final appDocumentDir = await getApplicationDocumentsDirectory();
-    await Hive.initFlutter(appDocumentDir.path);
+    await Hive.initFlutter(appDocumentarDir.path);
 
     // Registering the adapter that we will generate
     if (!Hive.isAdapterRegistered(DomainCheckResultAdapter().typeId)) {
-      Hive.registerAdapter(DomainCheck-resultAdapter());
+      Hive.registerAdapter(DomainCheckResultAdapter());
     }
     if (!Hive.isAdapterRegistered(CheckStatusAdapter().typeId)) {
       Hive.registerAdapter(CheckStatusAdapter());
