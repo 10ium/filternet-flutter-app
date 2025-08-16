@@ -1,12 +1,12 @@
-import 'package.flutter/material.dart';
-// All tool screen imports have been removed.
+import 'package:flutter/material.dart'; // CORRECTED import statement
+import 'tools/traceroute_screen.dart';
 
 // A data class for our tools
 class ToolInfo {
   final String title;
   final String description;
   final IconData icon;
-  final Widget? targetScreen; // The screen to navigate to
+  final Widget? targetScreen;
 
   ToolInfo({
     required this.title,
@@ -21,19 +21,18 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Both advanced tools are now disabled placeholders.
     final List<ToolInfo> tools = [
       ToolInfo(
         title: 'Traceroute',
         description: 'مسیر بسته‌های شبکه تا مقصد را ردیابی کنید',
         icon: Icons.route,
-        targetScreen: null, // Disabled by setting to null
+        targetScreen: const TracerouteScreen(),
       ),
       ToolInfo(
         title: 'تست سرعت',
         description: 'سرعت دانلود و آپلود اینترنت خود را بسنجید',
         icon: Icons.speed,
-        targetScreen: null, // Also disabled
+        targetScreen: null,
       ),
     ];
 
