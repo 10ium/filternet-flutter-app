@@ -14,6 +14,18 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      # CACHING: Cache Gradle dependencies to dramatically speed up subsequent builds
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/*.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -34,6 +46,11 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v3
+
+      # STABILITY: Explicitly set up MSVC build tools environment
+      - name: Set up MSVC environment
+        uses: microsoft/setup-msvc@v2
+
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -43,18 +60,12 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs
       - name: Build Windows Executable
         run: flutter build windows --release
-
-      # DEBUGGING STEP: List the contents of the build directory to verify the path
-      - name: List Windows build output
-        run: ls -R build/windows/runner/Release
-        shell: bash
-
       - name: Upload Windows artifact for release job
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
           path: build/windows/runner/Release/
-          if-no-files-found: error # Make the job fail if the path is empty
+          if-no-files-found: error
 
   create_release:
     name: Create GitHub Release
@@ -63,19 +74,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download Android APK artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: android-apk
           path: artifacts/
-      - name: Download Windows Build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-release
-          path: artifacts/windows-release/
-      - name: Zip the Windows release folder
-        run: zip -r ../windows-release.zip .
-        working-directory: artifacts/windows-release
+      - name: Zip Windows release folder
+        run: zip -r windows-release.zip ./windows-release
+        working-directory: artifacts/
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -85,5 +90,5 @@ jobs:
             نسخه خودکار اپلیکیشن فیلترنت.
             این نسخه شامل فایل‌های نصبی برای اندروید و ویندوز است.
           files: |
-            artifacts/app-release.apk
+            artifacts/android-apk/app-release.apk
             artifacts/windows-release.zip
