@@ -14,6 +14,8 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      # CACHING: Cache Gradle dependencies to dramatically speed up subsequent builds
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -23,6 +25,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/*.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -44,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # CORRECTED ACTION: Using a valid and reliable action to set up the MSVC environment.
+      # STABILITY: Explicitly set up MSVC build tools environment
       - name: Set up MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
 
@@ -57,11 +60,13 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs
       - name: Build Windows Executable
         run: flutter build windows --release
+
+      # CRITICAL FIX: The output path for modern Flutter on Windows includes the architecture (x64).
       - name: Upload Windows artifact for release job
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: build/windows/runner/Release/
+          path: build/windows/x64/runner/Release/
           if-no-files-found: error
 
   create_release:
@@ -71,13 +76,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+      
       - name: Zip Windows release folder
         run: zip -r windows-release.zip ./windows-release
         working-directory: artifacts/
+
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
