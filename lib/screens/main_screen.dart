@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'history_screen.dart';
-// import 'tools_screen.dart'; // We will create this next
+import 'tools_screen.dart'; // Import the new screen
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,11 +13,11 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // List of the main screens
+  // List of the main screens is now updated
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     HistoryScreen(),
-    Text('صفحه ابزارها - به زودی'), // A placeholder for the Tools screen
+    ToolsScreen(), // Replaced the placeholder
   ];
 
   void _onItemTapped(int index) {
@@ -29,12 +29,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The body will display the selected screen from the list
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      
-      // The bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -52,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Good for 3-4 items
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
