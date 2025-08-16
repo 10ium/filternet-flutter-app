@@ -5,7 +5,6 @@ on:
     branches: [ main ]
 
 jobs:
-  # Job to build the Android APK
   build_android:
     name: Build Android APK
     runs-on: ubuntu-latest
@@ -14,28 +13,22 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
-          java-version: '17' # Updated to Java 17 as required by the Android Gradle Plugin
-
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
       - name: Install dependencies
         run: flutter pub get
-
       - name: Generate Hive Adapters
         run: flutter pub run build_runner build --delete-conflicting-outputs
-
       - name: Build Android APK
         run: flutter build apk --release
-
       - name: Upload APK artifact for release job
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-  # Job to build the Windows Executable
   build_windows:
     name: Build Windows Executable
     runs-on: windows-2022
@@ -44,23 +37,25 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          
       - name: Install dependencies
         run: flutter pub get
-
       - name: Generate Hive Adapters
         run: flutter pub run build_runner build --delete-conflicting-outputs
-
       - name: Build Windows Executable
         run: flutter build windows --release
+
+      # DEBUGGING STEP: List the contents of the build directory to verify the path
+      - name: List Windows build output
+        run: ls -R build/windows/runner/Release
+        shell: bash
 
       - name: Upload Windows artifact for release job
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
           path: build/windows/runner/Release/
+          if-no-files-found: error # Make the job fail if the path is empty
 
-  # Job to create a GitHub Release
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -73,17 +68,14 @@ jobs:
         with:
           name: android-apk
           path: artifacts/
-
       - name: Download Windows Build artifact
         uses: actions/download-artifact@v4
         with:
           name: windows-release
           path: artifacts/windows-release/
-
       - name: Zip the Windows release folder
         run: zip -r ../windows-release.zip .
         working-directory: artifacts/windows-release
-
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
