@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../widgets/result_card.dart'; // We will create this widget next
-import '../widgets/share_button.dart'; // And this one too
-// import 'history_screen.dart'; // This will be created in a later step
+import '../widgets/result_card.dart';
+import '../widgets/share_button.dart';
+import 'history_screen.dart'; // This is now uncommented
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,17 +40,19 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('فیلترنت'),
         centerTitle: true,
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.history),
-        //     onPressed: () {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(builder: (context) => HistoryScreen()),
-        //       );
-        //     },
-        //   ),
-        // ],
+        // The actions section is now active
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'نمایش تاریخچه',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HistoryScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
