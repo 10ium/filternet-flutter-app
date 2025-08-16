@@ -25,7 +25,7 @@ dependencies:
   http: ^1.2.1
   share_plus: ^9.0.0
   dart_ping: ^9.0.2
-  flutter_internet_speed_test: ^2.1.0 # REPLACED with the new, reliable package
+  # Speed Test package has been REMOVED to ensure build stability
 
   # Local Storage
   hive: ^2.2.3
