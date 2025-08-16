@@ -16,7 +16,7 @@ dependencies:
   # UI & Utilities
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
-  intl: ^0.19.0
+  intl: ^0.20.2 # CORRECTED to match the SDK's requirement
 
   # State Management
   provider: ^6.1.2
@@ -24,7 +24,7 @@ dependencies:
   # Networking & Core Logic
   http: ^1.2.1
   share_plus: ^9.0.0
-  # dart_ping has been REMOVED to ensure build stability
+  # All problematic packages have been removed.
 
   # Local Storage
   hive: ^2.2.3
