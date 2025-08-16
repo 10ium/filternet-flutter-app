@@ -1,6 +1,8 @@
-import 'package.flutter/material.dart';
-import 'package.flutter/services.dart';
-import 'package:simple_tracert/simple_tracert.dart'; // Replaced the old import
+import 'dart:async';
+import 'dart:io';
+import 'package:dart_ping/dart_ping.dart'; // Using the correct, reliable package
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TracerouteScreen extends StatefulWidget {
   const TracerouteScreen({super.key});
@@ -14,14 +16,16 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
   
   bool _isTracing = false;
   final List<String> _traceResults = [];
+  StreamSubscription<PingData>? _pingSubscription;
 
   @override
   void dispose() {
     _textController.dispose();
+    _pingSubscription?.cancel(); // Cancel any ongoing trace when leaving the screen
     super.dispose();
   }
 
-  void _runTraceroute() async {
+  Future<void> _runTraceroute() async {
     FocusScope.of(context).unfocus();
     final host = _textController.text.trim();
     if (host.isEmpty) return;
@@ -32,40 +36,74 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
       _traceResults.add('🚀 شروع ردیابی مسیر به سمت $host ...');
     });
 
-    final tracert = SimpleTracert();
-
+    String? destinationIp;
     try {
-      final result = await tracert.execute(host, timeout: 5);
-
-      final formattedResults = <String>[];
-      if (result.destIp != null) {
-        formattedResults.add('IP مقصد: ${result.destIp}');
+      // First, resolve the hostname to an IP address
+      final addresses = await InternetAddress.lookup(host);
+      if (addresses.isNotEmpty) {
+        destinationIp = addresses.first.address;
+        setState(() {
+          _traceResults.add('IP مقصد: $destinationIp');
+          _traceResults.add('-----------------------------------');
+        });
+      } else {
+        throw Exception('آدرس IP برای هاست یافت نشد.');
       }
-      formattedResults.add('-----------------------------------');
-
-      for (final hop in result.hops) {
-        final rtt = hop.rtt1.isNotEmpty ? '${hop.rtt1} ms' : '*';
-        final ip = hop.ip.isNotEmpty ? hop.ip : 'Request timed out.';
-        formattedResults.add('${hop.hop.toString().padLeft(2)}.   $rtt   $ip');
-      }
-
-      setState(() {
-        _traceResults.clear(); // Clear the "starting..." message
-        _traceResults.addAll(formattedResults);
-        _traceResults.add('-----------------------------------');
-        _traceResults.add('🏁 ردیابی کامل شد.');
-      });
-
     } catch (e) {
       setState(() {
-        _traceResults.add('❌ خطایی رخ داد:');
-        _traceResults.add(e.toString());
-      });
-    } finally {
-      setState(() {
+        _traceResults.add('❌ خطای DNS: $e');
         _isTracing = false;
       });
+      return;
     }
+
+    // Loop through TTLs to perform the trace
+    for (int ttl = 1; ttl <= 30; ttl++) {
+      if (!_isTracing) break; // Allow user to stop the process (future feature)
+
+      final ping = Ping(destinationIp, count: 1, ttl: ttl, timeout: 5, Rss: true);
+      final completer = Completer<String>();
+
+      _pingSubscription = ping.stream.listen((data) {
+        String hopInfo = '';
+        if (data.response != null) {
+          final response = data.response!;
+          final rtt = response.time?.inMilliseconds ?? 'N/A';
+          hopInfo = '${ttl.toString().padLeft(2)}.   ${rtt} ms   ${response.ip}';
+          
+          // Check if we reached the destination
+          if (response.ip == destinationIp) {
+            _isTracing = false; // Stop the trace
+          }
+        }
+        if (data.error != null) {
+          hopInfo = '${ttl.toString().padLeft(2)}.   *   Request timed out.';
+        }
+        
+        if (!completer.isCompleted) {
+          completer.complete(hopInfo);
+        }
+      });
+      
+      // Wait for the ping for this TTL to complete
+      final hopResult = await completer.future;
+      setState(() {
+        _traceResults.add(hopResult);
+      });
+      
+      await _pingSubscription?.cancel();
+
+      // If the last hop was the destination, stop the loop
+      if (!_isTracing) {
+        break;
+      }
+    }
+
+    setState(() {
+      _traceResults.add('-----------------------------------');
+      _traceResults.add('🏁 ردیابی کامل شد.');
+      _isTracing = false;
+    });
   }
   
   void _copyResultsToClipboard() {
@@ -133,4 +171,14 @@ class _TracerouteScreenState extends State<TracerouteScreen> {
                       itemBuilder: (context, index) {
                         return Text(
                           _traceResults[index],
-                          style: const TextStyle(fontFamily: 'monospace', fontSiz
+                          style: const TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.white70),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
