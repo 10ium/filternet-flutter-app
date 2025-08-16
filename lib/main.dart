@@ -79,7 +79,7 @@ class FilterNetApp extends StatelessWidget {
         locale: const Locale('fa'),
 
         // --- HOME PAGE ---
-        home: HomeScreen(), // The main screen of the app
+        home: MainScreen(), // The main screen of the app
       ),
     );
   }
