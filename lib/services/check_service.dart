@@ -87,21 +87,36 @@ class CheckService {
         timeout: Duration(seconds: _timeoutSeconds),
       );
 
-      // IMPORTANT FIX: The 'onBadCertificate' callback is required for this method to work.
-      // We return 'true' to accept any certificate, as we are not validating the
-      // certificate of the probe host (google.com), only testing the connection itself.
       final secureSocket = await SecureSocket.secure(
         socket,
-        host: domain, // This 'host' parameter is used for the SNI field.
+        host: domain,
         onBadCertificate: (certificate) => true,
       );
 
       result.status = CheckStatus.open;
       result.details = 'اتصال TLS برقرار شد';
       
-      // The 'destroy()' method returns void and cannot be awaited.
       secureSocket.destroy();
 
     } on TimeoutException {
       result.status = CheckStatus.error;
-      result.details = '
+      result.details = 'اتصال TLS زمان‌بر شد (Timeout)';
+    } on TlsException {
+      result.status = CheckStatus.blocked;
+      result.details = 'اتصال TLS قطع شد (Handshake)';
+    } on SocketException catch (e) {
+      if (e.osError?.message.contains('Connection reset by peer') ?? false) {
+          result.status = CheckStatus.blocked;
+          result.details = 'اتصال توسط میزبان قطع شد';
+      } else {
+          result.status = CheckStatus.error;
+          result.details = 'خطای اتصال در لایه سوکت';
+      }
+    } catch (e) {
+      result.status = CheckStatus.error;
+      result.details = 'خطای نامشخص TLS';
+    }
+    // This return statement was missing.
+    return result;
+  }
+} // This closing brace was missing.
