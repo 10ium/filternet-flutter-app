@@ -87,12 +87,15 @@ class CheckService {
         timeout: Duration(seconds: _timeoutSeconds),
       );
 
-      final secureSocket = await SecureSocket.secure(socket, host: domain);
+      // IMPORTANT: The 'onBadCertificate' callback is required for this method to work.
+      // We return 'true' to accept any certificate, as we are not validating the
+      // certificate of the probe host (google.com), only testing the connection.
+      final secureSocket = await SecureSocket.secure(socket, host: domain, onBadCertificate: (cert) => true);
 
       result.status = CheckStatus.open;
       result.details = 'اتصال TLS برقرار شد';
       
-      // CORRECTED: The 'destroy()' method returns void and cannot be awaited.
+      // The 'destroy()' method returns void and cannot be awaited.
       secureSocket.destroy();
 
     } on TimeoutException {
