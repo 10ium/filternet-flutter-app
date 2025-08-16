@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'tools/traceroute_screen.dart';
-// The import for speed_test_screen has been removed.
+import 'package.flutter/material.dart';
+// All tool screen imports have been removed.
 
 // A data class for our tools
 class ToolInfo {
@@ -22,19 +21,19 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The list of tools now has Speed Test disabled again.
+    // Both advanced tools are now disabled placeholders.
     final List<ToolInfo> tools = [
       ToolInfo(
         title: 'Traceroute',
         description: 'مسیر بسته‌های شبکه تا مقصد را ردیابی کنید',
         icon: Icons.route,
-        targetScreen: const TracerouteScreen(),
+        targetScreen: null, // Disabled by setting to null
       ),
       ToolInfo(
         title: 'تست سرعت',
         description: 'سرعت دانلود و آپلود اینترنت خود را بسنجید',
         icon: Icons.speed,
-        targetScreen: null, // Disabled again by setting to null
+        targetScreen: null, // Also disabled
       ),
     ];
 
