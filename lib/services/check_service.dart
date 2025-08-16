@@ -81,36 +81,32 @@ class CheckService {
   Future<SingleCheckResult> checkSni(String domain) async {
     final result = SingleCheckResult(title: 'SNI');
     try {
-      // THIS IS THE FINAL, CORRECT IMPLEMENTATION
-      // Using SecureSocket.startConnect which is designed for this purpose
-      // and correctly accepts the 'serverName' parameter for SNI checks.
-      final task = await SecureSocket.startConnect(
+      // THIS IS THE FINAL, CORRECT IMPLEMENTATION.
+      // 1. Establish a raw socket connection.
+      final socket = await Socket.connect(
         _sniProbeHost,
         443,
         timeout: Duration(seconds: _timeoutSeconds),
       );
 
-      // We must await the socket from the connection task
-      final socket = await task.socket;
-      
-      // Set the SNI hostname on the connected socket.
-      // This is a crucial step that was missing.
-      socket.setOption(SocketOption.serverName, domain);
-      
-      // If the handshake completes without error, it's open.
-      await socket.handshake();
+      // 2. Upgrade the raw socket to a secure (TLS) socket, providing the SNI hostname.
+      //    The 'host' parameter here is used for the SNI field.
+      final secureSocket = await SecureSocket.secure(socket, host: domain);
 
+      // 3. If the handshake above completes without throwing an exception, SNI is not blocked.
       result.status = CheckStatus.open;
       result.details = 'اتصال TLS برقرار شد';
-      await socket.destroy();
+      await secureSocket.destroy();
 
     } on TimeoutException {
       result.status = CheckStatus.error;
       result.details = 'اتصال TLS زمان‌بر شد (Timeout)';
     } on TlsException {
+      // This is the primary exception we expect for a blocked SNI.
       result.status = CheckStatus.blocked;
       result.details = 'اتصال TLS قطع شد (Handshake)';
     } on SocketException catch (e) {
+      // "Connection reset by peer" is also a strong indicator of blocking.
       if (e.osError?.message.contains('Connection reset by peer') ?? false) {
           result.status = CheckStatus.blocked;
           result.details = 'اتصال توسط میزبان قطع شد';
