@@ -81,7 +81,8 @@ class CheckService {
   Future<SingleCheckResult> checkSni(String domain) async {
     final result = SingleCheckResult(title: 'SNI');
     try {
-      // CORRECTED the parameter name back to 'hostName'
+      // CORRECTED the parameter name back to 'hostName' which appears to be the
+      // correct one for the SDK version used in the GitHub Actions environment.
       final socket = await SecureSocket.connect(
         _sniProbeHost,
         443,
