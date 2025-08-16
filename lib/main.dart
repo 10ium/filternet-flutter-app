@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/app_provider.dart';
-import 'screens/home_screen.dart'; // We will create this screen next
+import 'screens/main_screen.dart'; // Changed from home_screen.dart
 import 'services/history_service.dart';
 
 void main() async {
@@ -79,7 +79,7 @@ class FilterNetApp extends StatelessWidget {
         locale: const Locale('fa'),
 
         // --- HOME PAGE ---
-        home: MainScreen(), // The main screen of the app
+        home: const MainScreen(), // Changed from HomeScreen()
       ),
     );
   }
