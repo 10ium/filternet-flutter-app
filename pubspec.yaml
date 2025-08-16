@@ -16,7 +16,7 @@ dependencies:
   # UI & Utilities
   cupertino_icons: ^1.0.2
   google_fonts: ^6.1.0
-  intl: ^0.18.1 # For date formatting
+  intl: ^0.18.1
 
   # State Management
   provider: ^6.0.5
@@ -25,6 +25,7 @@ dependencies:
   dns_client: ^1.1.0
   http: ^1.1.0
   share_plus: ^7.2.1
+  flutter_traceroute: ^1.0.1 # For Traceroute tool
 
   # Local Storage
   hive: ^2.2.3
