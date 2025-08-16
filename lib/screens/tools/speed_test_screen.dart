@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:internet_speed_test/callbacks_enum.dart';
-import 'package:internet_speed_test/internet_speed_test.dart';
+import 'package:flutter_internet_speed_test/flutter_internet_speed_test.dart';
 
 class SpeedTestScreen extends StatefulWidget {
   const SpeedTestScreen({super.key});
@@ -10,71 +9,70 @@ class SpeedTestScreen extends StatefulWidget {
 }
 
 class _SpeedTestScreenState extends State<SpeedTestScreen> {
-  final internetSpeedTest = InternetSpeedTest();
+  final speedTest = FlutterInternetSpeedTest();
 
   bool _isTesting = false;
+  // A flag to know which phase (download/upload) is active
+  bool _isDownloadPhase = true; 
+
   double _downloadRate = 0;
   double _uploadRate = 0;
-  String _downloadProgress = '0';
-  String _uploadProgress = '0';
-  int _downloadCompletionTime = 0;
-  int _uploadCompletionTime = 0;
+  double _downloadProgress = 0;
+  double _uploadProgress = 0;
   String _unitText = 'Mbps';
-
-  String _currentTask = 'آماده برای تست';
+  String _statusMessage = 'آماده برای تست';
 
   void _runSpeedTest() {
+    // Reset all states before starting a new test
     setState(() {
       _isTesting = true;
+      _isDownloadPhase = true;
       _downloadRate = 0;
       _uploadRate = 0;
-      _currentTask = 'در حال آماده سازی...';
+      _downloadProgress = 0;
+      _uploadProgress = 0;
+      _statusMessage = 'در حال انتخاب سرور...';
     });
 
-    internetSpeedTest.startSpeedTest(
-      onStarted: () {
-        setState(() => _currentTask = 'در حال تست سرعت دانلود...');
-      },
-      onDownloadComplete: (TestResult download, TestResult cumul) {
+    speedTest.startTesting(
+      onDefaultServerSelectionDone: (client) {
         setState(() {
-          _downloadRate = download.transferRate;
-          _unitText = download.unit == SpeedUnit.kbps ? 'Kbps' : 'Mbps';
-          _downloadProgress = '100';
-          _downloadCompletionTime = cumul.durationInMillis;
+          _statusMessage = 'در حال تست سرعت دانلود...';
         });
       },
-      onUploadComplete: (TestResult upload, TestResult cumul) {
+      onDownloadComplete: (TestResult data) {
         setState(() {
-          _uploadRate = upload.transferRate;
-          _unitText = upload.unit == SpeedUnit.kbps ? 'Kbps' : 'Mbps';
-          _uploadProgress = '100';
-          _uploadCompletionTime = cumul.durationInMillis;
+          _downloadRate = data.transferRate;
+          _unitText = data.unit == SpeedUnit.kbps ? 'Kbps' : 'Mbps';
+          _isDownloadPhase = false; // Switch to upload phase
+          _statusMessage = 'در حال تست سرعت آپلود...';
+        });
+      },
+      onUploadComplete: (TestResult data) {
+        setState(() {
+          _uploadRate = data.transferRate;
+          _unitText = data.unit == SpeedUnit.kbps ? 'Kbps' : 'Mbps';
+          _isTesting = false; // Test is finished
+          _statusMessage = 'تست کامل شد.';
         });
       },
       onProgress: (double percent, TestResult data) {
         setState(() {
           _unitText = data.unit == SpeedUnit.kbps ? 'Kbps' : 'Mbps';
-          if (data.type == TestType.download) {
+          if (_isDownloadPhase) {
             _downloadRate = data.transferRate;
-            _downloadProgress = percent.toStringAsFixed(2);
-            _currentTask = 'در حال تست سرعت دانلود...';
+            _downloadProgress = percent / 100;
           } else {
+            // Upload phase
             _uploadRate = data.transferRate;
-            _uploadProgress = percent.toStringAsFixed(2);
-            _currentTask = 'در حال تست سرعت آپلود...';
+            _uploadProgress = percent / 100;
           }
         });
       },
       onError: (String errorMessage, String speedTestError) {
         setState(() {
           _isTesting = false;
-          _currentTask = 'خطا در انجام تست';
-        });
-      },
-      onCompletion: (TestResult testResult) {
-        setState(() {
-          _isTesting = false;
-          _currentTask = 'تست کامل شد';
+          _statusMessage = 'خطا در انجام تست. لطفا دوباره تلاش کنید.';
         });
       },
     );
@@ -92,22 +90,18 @@ class _SpeedTestScreenState extends State<SpeedTestScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- GAUGE SECTION ---
             _buildGauge(),
             const SizedBox(height: 32),
-            // --- RESULTS SECTION ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildResultCard(Icons.download, 'دانلود', _downloadRate),
-                _buildResultCard(Icons.upload, 'آپلود', _uploadRate),
+                _buildResultCard(Icons.download_rounded, 'دانلود', _downloadRate),
+                _buildResultCard(Icons.upload_rounded, 'آپلود', _uploadRate),
               ],
             ),
             const SizedBox(height: 32),
-            // --- STATUS TEXT ---
-            Text(_currentTask, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade400)),
+            Text(_statusMessage, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade400)),
             const SizedBox(height: 32),
-            // --- ACTION BUTTON ---
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -122,8 +116,8 @@ class _SpeedTestScreenState extends State<SpeedTestScreen> {
   }
 
   Widget _buildGauge() {
-    double progress = (_isTesting ? (_currentTask.contains('دانلود') ? double.tryParse(_downloadProgress) ?? 0 : double.tryParse(_uploadProgress) ?? 0) : 0) / 100;
-    double rate = _currentTask.contains('دانلود') ? _downloadRate : _uploadRate;
+    double progress = _isDownloadPhase ? _downloadProgress : _uploadProgress;
+    double rate = _isDownloadPhase ? _downloadRate : _uploadRate;
 
     return AspectRatio(
       aspectRatio: 1.5,
@@ -141,7 +135,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen> {
               value: progress,
               strokeWidth: 8,
               backgroundColor: Colors.grey.shade700,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.teal.shade300),
             ),
             Center(
               child: Column(
@@ -149,9 +143,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen> {
                 children: [
                   Text(
                     rate.toStringAsFixed(2),
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Text(
                     _unitText,
