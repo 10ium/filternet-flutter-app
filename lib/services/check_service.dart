@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:dns_client/dns_client.dart';
+// The import path is now corrected to match the package name in pubspec.yaml
+import 'package:dns_client_over_https/dns_client_over_https.dart';
 import 'package:http/http.dart' as http;
 import '../models/check_result.dart';
 
@@ -89,30 +90,22 @@ class CheckService {
   Future<SingleCheckResult> checkSni(String domain) async {
     final result = SingleCheckResult(title: 'SNI');
     try {
-      // We try to connect to a known good host (_sniProbeHost)
-      // but we tell it that we are looking for our target `domain`.
-      // The firewall will see this `domain` in the SNI field and reset the connection.
       final socket = await SecureSocket.connect(
         _sniProbeHost,
         443,
-        // This is the crucial part for SNI check
         hostName: domain, 
         timeout: Duration(seconds: _timeoutSeconds),
       );
-      // If we successfully connect, SNI is not blocked.
       result.status = CheckStatus.open;
       result.details = 'اتصال TLS برقرار شد';
       await socket.destroy();
     } on TimeoutException {
-      // Timeout is not a definitive block, but could be an issue.
       result.status = CheckStatus.error;
       result.details = 'اتصال TLS زمان‌بر شد (Timeout)';
-    } on TlsException catch (e) {
-      // A handshake exception is a strong indicator of SNI blocking.
+    } on TlsException {
       result.status = CheckStatus.blocked;
       result.details = 'اتصال TLS قطع شد (Handshake)';
     } on SocketException catch (e) {
-      // "Connection reset by peer" is also a strong indicator.
       if (e.osError?.message.contains('Connection reset by peer') ?? false) {
           result.status = CheckStatus.blocked;
           result.details = 'اتصال توسط میزبان قطع شد';
