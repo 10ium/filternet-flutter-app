@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-// The import path is now corrected to match the package name in pubspec.yaml
-import 'package:dns_client_over_https/dns_client_over_https.dart';
+// The import path is now corrected to the valid package
+import 'package:doh_client/doh_client.dart';
 import 'package:http/http.dart' as http;
 import '../models/check_result.dart';
 
@@ -22,8 +22,9 @@ class CheckService {
   Future<SingleCheckResult> checkDns(String domain) async {
     final result = SingleCheckResult(title: 'DNS');
     try {
-      final client = DnsOverHttps(DnsOverHttps.google);
-      final response = await client.lookup(domain, type: DnsRecordType.A)
+      // Use the correct DohClient class from the doh_client package
+      final client = DohClient(DohProviders.google);
+      final response = await client.lookup(domain, type: DohRecordType.A)
           .timeout(Duration(seconds: _timeoutSeconds));
       
       if (response.isEmpty) {
@@ -57,7 +58,6 @@ class CheckService {
     final url = Uri.parse('http://$domain');
     
     try {
-      // We only need headers and a small part of the body.
       final response = await http.get(url)
           .timeout(Duration(seconds: _timeoutSeconds));
 
