@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'tools/traceroute_screen.dart'; // Import the new screen
 
 // A data class for our tools
 class ToolInfo {
@@ -20,19 +21,19 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // List of available tools. We will add more here later.
+    // List of available tools. Traceroute is now enabled.
     final List<ToolInfo> tools = [
       ToolInfo(
         title: 'Traceroute',
         description: 'مسیر بسته‌های شبکه تا مقصد را ردیابی کنید',
         icon: Icons.route,
-        targetScreen: null, // Placeholder for now
+        targetScreen: const TracerouteScreen(), // Now linked to the screen
       ),
       ToolInfo(
         title: 'تست سرعت',
         description: 'سرعت دانلود و آپلود اینترنت خود را بسنجید',
         icon: Icons.speed,
-        targetScreen: null, // Placeholder for now
+        targetScreen: null, // Still a placeholder
       ),
     ];
 
@@ -63,7 +64,7 @@ class ToolsScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => tool.targetScreen!),
                       );
                     }
-                  : null, // Do nothing if screen is not implemented yet
+                  : null,
             ),
           );
         },
