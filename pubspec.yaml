@@ -26,6 +26,7 @@ dependencies:
   http: ^1.1.0
   share_plus: ^7.2.1
   flutter_traceroute: ^1.0.1 # For Traceroute tool
+  internet_speed_test: ^1.5.0 # For Speed Test tool
 
   # Local Storage
   hive: ^2.2.3
