@@ -22,7 +22,7 @@ dependencies:
   provider: ^6.0.5
 
   # Networking & Core Logic
-  dns_client_over_https: ^1.1.0 # Corrected package name
+  doh_client: ^1.1.0 # CORRECTED package name
   http: ^1.1.0
   share_plus: ^7.2.1
   dart_ping: ^8.0.0
