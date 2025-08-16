@@ -24,8 +24,7 @@ dependencies:
   # Networking & Core Logic
   http: ^1.2.1
   share_plus: ^9.0.0
-  dart_ping: ^9.0.2
-  # Speed Test package has been REMOVED to ensure build stability
+  # dart_ping has been REMOVED to ensure build stability
 
   # Local Storage
   hive: ^2.2.3
