@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-// The import path is now corrected to the valid package
-import 'package:doh_client/doh_client.dart';
+// The import path is now corrected to the final, verified package
+import 'package:doh/doh.dart';
 import 'package:http/http.dart' as http;
 import '../models/check_result.dart';
 
@@ -22,10 +22,12 @@ class CheckService {
   Future<SingleCheckResult> checkDns(String domain) async {
     final result = SingleCheckResult(title: 'DNS');
     try {
-      // Use the correct DohClient class from the doh_client package
-      final client = DohClient(DohProviders.google);
-      final response = await client.lookup(domain, type: DohRecordType.A)
-          .timeout(Duration(seconds: _timeoutSeconds));
+      // Use the static lookup method from the correct 'doh' package
+      final response = await Doh.lookup(
+        domain,
+        type: DohRecordType.A,
+        provider: DohProvider.google,
+      ).timeout(Duration(seconds: _timeoutSeconds));
       
       if (response.isEmpty) {
         result.status = CheckStatus.error;
@@ -33,7 +35,8 @@ class CheckService {
         return result;
       }
 
-      final ip = response.first.address;
+      // The correct property to access the IP is '.data'
+      final ip = response.first.data;
       if (_blockedIps.contains(ip)) {
         result.status = CheckStatus.blocked;
         result.details = 'IP مسدودسازی: $ip';
