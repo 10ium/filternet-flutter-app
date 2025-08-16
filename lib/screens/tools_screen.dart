@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'tools/traceroute_screen.dart';
-import 'tools/speed_test_screen.dart'; // Import the new screen
+// The import for speed_test_screen has been removed.
 
 // A data class for our tools
 class ToolInfo {
@@ -22,7 +22,7 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The list of tools is now complete
+    // The list of tools now has Speed Test disabled again.
     final List<ToolInfo> tools = [
       ToolInfo(
         title: 'Traceroute',
@@ -34,7 +34,7 @@ class ToolsScreen extends StatelessWidget {
         title: 'تست سرعت',
         description: 'سرعت دانلود و آپلود اینترنت خود را بسنجید',
         icon: Icons.speed,
-        targetScreen: const SpeedTestScreen(), // Now linked to the screen
+        targetScreen: null, // Disabled again by setting to null
       ),
     ];
 
