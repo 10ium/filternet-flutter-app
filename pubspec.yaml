@@ -16,9 +16,9 @@ dependencies:
   # UI & Utilities
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
-  intl: ^0.18.1 # Updated to a more recent compatible version
-  shamsi_date: ^1.0.1 # ADDED: For Shamsi (Jalali) date conversion
-  timezone: ^0.9.3 # ADDED: For timezone management (Tehran)
+  intl: ^0.20.2 # UPDATED: Changed from ^0.18.1 to ^0.20.2 to resolve conflict
+  shamsi_date: ^1.0.1
+  timezone: ^0.9.3
 
   # State Management
   provider: ^6.1.2
@@ -26,7 +26,7 @@ dependencies:
   # Networking & Core Logic
   http: ^1.2.1
   share_plus: ^9.0.0
-  logger: ^2.3.0 # ADDED: For application logging
+  logger: ^2.3.0
 
   # Local Storage
   hive: ^2.2.3
