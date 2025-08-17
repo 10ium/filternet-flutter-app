@@ -60,10 +60,10 @@ class LogService {
     }
   }
 
-  // Example of using the logger
-  void debug(String message, [dynamic error, StackTrace? stackTrace]) => _logger.d(message, error, stackTrace);
-  void info(String message, [dynamic error, StackTrace? stackTrace]) => _logger.i(message, error, stackTrace);
-  void warning(String message, [dynamic error, StackTrace? stackTrace]) => _logger.w(message, error, stackTrace);
-  void error(String message, [dynamic error, StackTrace? stackTrace]) => _logger.e(message, error, stackTrace);
-  void fatal(String message, [dynamic error, StackTrace? stackTrace]) => _logger.f(message, error, stackTrace);
+  // CORRECTED: Using named parameters for error and stackTrace
+  void debug(String message, [dynamic error, StackTrace? stackTrace]) => _logger.d(message, error: error, stackTrace: stackTrace);
+  void info(String message, [dynamic error, StackTrace? stackTrace]) => _logger.i(message, error: error, stackTrace: stackTrace);
+  void warning(String message, [dynamic error, StackTrace? stackTrace]) => _logger.w(message, error: error, stackTrace: stackTrace);
+  void error(String message, [dynamic error, StackTrace? stackTrace]) => _logger.e(message, error: error, stackTrace: stackTrace);
+  void fatal(String message, [dynamic error, StackTrace? stackTrace]) => _logger.f(message, error: error, stackTrace: stackTrace);
 }

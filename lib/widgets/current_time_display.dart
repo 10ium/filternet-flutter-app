@@ -46,6 +46,11 @@ class _CurrentTimeDisplayState extends State<CurrentTimeDisplay> {
     final gregorianFormatter = intl.DateFormat('yyyy/MM/dd – HH:mm', 'en_US');
     final gregorianWordFormatter = intl.DateFormat('EEEE, d MMMM yyyy', 'en_US');
 
+    // CORRECTED: Extracting hour and minute from _now (TZDateTime)
+    final String currentHour = _now.hour.toString().padLeft(2, '0');
+    final String currentMinute = _now.minute.toString().padLeft(2, '0');
+
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -62,7 +67,8 @@ class _CurrentTimeDisplayState extends State<CurrentTimeDisplay> {
           ),
           _buildTimeRow(
             'شمسی (اعداد):',
-            '${jalaliFormatter.yyyy}/${jalaliFormatter.mm}/${jalaliFormatter.dd} – ${jalaliFormatter.HH}:${jalaliFormatter.nn}',
+            // CORRECTED: Using _now for hour and minute
+            '${jalaliFormatter.yyyy}/${jalaliFormatter.mm}/${jalaliFormatter.dd} – $currentHour:$currentMinute',
           ),
           const Divider(color: Colors.grey, height: 20),
           _buildTimeRow(
