@@ -80,6 +80,14 @@ class AppProvider extends ChangeNotifier {
     await loadHistory();
   }
 
+  // New method to delete a single item from history
+  Future<void> deleteHistoryItem(DomainCheckResult item) async {
+    await _historyService.deleteFromHistory(item);
+    // Remove from the local list to avoid a full reload
+    _history.remove(item);
+    notifyListeners();
+  }
+
   Future<void> clearHistory() async {
     await _historyService.clearHistory();
     _history = [];

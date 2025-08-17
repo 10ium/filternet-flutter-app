@@ -2,17 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'providers/app_provider.dart';
-import 'screens/main_screen.dart'; // Changed from home_screen.dart
+import 'screens/main_screen.dart';
 import 'services/history_service.dart';
+import 'services/log_service.dart'; // Import LogService
 
 void main() async {
   // Ensure that Flutter bindings are initialized before calling native code
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize the timezone database for the entire app
+  tz.initializeTimeZones();
+  // Set the local time zone to Tehran for all date/time operations
+  tz.setLocalLocation(tz.getLocation('Asia/Tehran'));
+
   // Initialize the history service (Hive)
   await HistoryService().init();
+
+  // Initialize the log service
+  await LogService().init(); // ADDED: Initialize LogService
 
   runApp(const FilterNetApp());
 }
@@ -79,7 +90,7 @@ class FilterNetApp extends StatelessWidget {
         locale: const Locale('fa'),
 
         // --- HOME PAGE ---
-        home: const MainScreen(), // Changed from HomeScreen()
+        home: const MainScreen(),
       ),
     );
   }

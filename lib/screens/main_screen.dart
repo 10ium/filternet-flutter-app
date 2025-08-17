@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'history_screen.dart';
-import 'tools_screen.dart'; // Import the new screen
+import 'log_screen.dart'; // Import the new LogScreen
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,11 +13,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // List of the main screens is now updated
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     HistoryScreen(),
-    ToolsScreen(), // Replaced the placeholder
   ];
 
   void _onItemTapped(int index) {
@@ -42,15 +40,23 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.history),
             label: 'تاریخچه',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.build_circle),
-            label: 'ابزارها',
-          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
       ),
+      // ADDED: Floating Action Button for LogScreen
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LogScreen()),
+          );
+        },
+        child: const Icon(Icons.bug_report), // Bug icon for log/report
+        tooltip: 'گزارش مشکل / مشاهده لاگ‌ها',
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Position at bottom end
     );
   }
 }

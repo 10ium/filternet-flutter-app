@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/check_result.dart';
 import '../providers/app_provider.dart';
-import 'package:intl/intl.dart' as intl; // For date formatting
+import 'package:intl/intl.dart' as intl;
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -18,16 +18,26 @@ class HistoryScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'جزئیات برای: ${result.domain}',
-                style: Theme.of(context).textTheme.headlineSmall,
+              // Use Directionality for the title to align it correctly
+              Directionality(
+                textDirection: TextDirection.rtl,
+                child: Text(
+                  'جزئیات برای: ${result.domain}',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
               ),
               const SizedBox(height: 8),
-              Text(
-                intl.DateFormat('yyyy/MM/dd – HH:mm').format(result.timestamp),
-                style: Theme.of(context).textTheme.bodySmall,
+              // Make sure timestamp is aligned properly
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  intl.DateFormat('yyyy/MM/dd – HH:mm').format(result.timestamp),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textDirection: TextDirection.ltr,
+                ),
               ),
               const Divider(height: 32),
+              // Details rows are fine as they are handled internally
               _buildDetailRow('DNS', result.dnsStatus, result.dnsDetails),
               _buildDetailRow('HTTP', result.httpStatus, result.httpDetails),
               _buildDetailRow('SNI', result.sniStatus, result.sniDetails),
@@ -140,16 +150,56 @@ class HistoryScreen extends StatelessWidget {
                 final item = history[index];
                 final overallStatus = item.overallStatus;
 
-                return ListTile(
-                  leading: Icon(
-                    overallStatus == CheckStatus.blocked ? Icons.cancel : Icons.check_circle,
-                    color: overallStatus == CheckStatus.blocked ? Colors.red : Colors.green,
+                // Wrap ListTile with Dismissible for swipe-to-delete functionality
+                return Dismissible(
+                  key: ValueKey(item.timestamp.toIso8601String()), // Unique key for Dismissible
+                  direction: DismissDirection.endToStart, // Only allow swipe from right to left
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
-                  title: Text(item.domain),
-                  subtitle: Text(
-                    intl.DateFormat('yyyy/MM/dd – HH:mm').format(item.timestamp),
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('حذف آیتم'),
+                        content: Text('آیا مطمئن هستید که می‌خواهید "${item.domain}" را از تاریخچه حذف کنید؟'),
+                        actions: [
+                          TextButton(
+                            child: const Text('خیر'),
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                          ),
+                          TextButton(
+                            child: const Text('بله'),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  onDismissed: (direction) {
+                    context.read<AppProvider>().deleteHistoryItem(item);
+                    // Optionally show a SnackBar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('"${item.domain}" از تاریخچه حذف شد.')),
+                    );
+                  },
+                  child: Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: ListTile(
+                      leading: Icon(
+                        overallStatus == CheckStatus.blocked ? Icons.cancel : Icons.check_circle,
+                        color: overallStatus == CheckStatus.blocked ? Colors.red : Colors.green,
+                      ),
+                      title: Text(item.domain),
+                      subtitle: Text(
+                        intl.DateFormat('yyyy/MM/dd – HH:mm').format(item.timestamp),
+                      ),
+                      onTap: () => _showDetailsDialog(context, item),
+                    ),
                   ),
-                  onTap: () => _showDetailsDialog(context, item),
                 );
               },
             ),

@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../widgets/result_card.dart';
 import '../widgets/share_button.dart';
-import 'history_screen.dart'; // This is now uncommented
+import '../widgets/current_time_display.dart'; // Import the new widget
+import 'history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,16 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('فیلترنت'),
         centerTitle: true,
-        // The actions section is now active
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'نمایش تاریخچه',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HistoryScreen()),
-              );
+              // This navigation is handled by MainScreen, but we can keep it for direct access if needed
+              // Or, more correctly, it should be removed if MainScreen is the primary navigator.
+              // For now, let's keep it as is.
             },
           ),
         ],
@@ -59,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // --- TIME DISPLAY SECTION ---
+            const CurrentTimeDisplay(),
+            const SizedBox(height: 24),
+
             // --- INPUT SECTION ---
             TextField(
               controller: _textController,
